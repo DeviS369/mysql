@@ -1,0 +1,105 @@
+Database Design: IMDB
+Here is the structure of the IMDB database, including the tables, relationships, and constraints to achieve the requirements.Database Schema
+Tables and Relationships
+Movies:Represents movie details.
+Contains primary details about movies.
+Media:Stores media associated with movies (images or videos).
+Each media is linked to a movie.
+Genres:Represents various genres.
+Movies can belong to multiple genres via a many-to-many relationship.
+Movie_Genres:A join table to establish a many-to-many relationship between movies and genres.
+Users:Represents users who review movies.
+Reviews:Stores reviews for movies.
+Each review is linked to a movie and a user.
+Artists:Represents artists who work in movies.
+Includes their skills.
+Artist_Skills:A join table to establish a many-to-many relationship between artists and their skills.
+Movie_Artists:Stores the roles an artist performs in a movie.
+ Queries for Database and Table Creation
+1. Create DatabaseCREATE DATABASE IMDB;
+USE IMDB;
+2. Create Tables
+Movies TableCREATE TABLE Movies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    release_date DATE NOT NULL
+);
+Media TableCREATE TABLE Media (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    movie_id INT,
+    media_type ENUM('Video', 'Image'),
+    url VARCHAR(255) NOT NULL,
+    FOREIGN KEY (movie_id) REFERENCES Movies(id) ON DELETE CASCADE
+);
+Genres TableCREATE TABLE Genres (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL
+);
+Movie_Genres TableCREATE TABLE Movie_Genres (
+    movie_id INT,
+    genre_id INT,
+    PRIMARY KEY (movie_id, genre_id),
+    FOREIGN KEY (movie_id) REFERENCES Movies(id) ON DELETE CASCADE,
+    FOREIGN KEY (genre_id) REFERENCES Genres(id) ON DELETE CASCADE
+);
+Users TableCREATE TABLE Users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+Reviews TableCREATE TABLE Reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    movie_id INT,
+    user_id INT,
+    review_text TEXT NOT NULL,
+    rating INT CHECK (rating BETWEEN 1 AND 10),
+    FOREIGN KEY (movie_id) REFERENCES Movies(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+);
+Artists TableCREATE TABLE Artists (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    bio TEXT
+);
+Artist_Skills TableCREATE TABLE Artist_Skills (
+    artist_id INT,
+    skill VARCHAR(100),
+    PRIMARY KEY (artist_id, skill),
+    FOREIGN KEY (artist_id) REFERENCES Artists(id) ON DELETE CASCADE
+);
+Movie_Artists TableCREATE TABLE Movie_Artists (
+    movie_id INT,
+    artist_id INT,
+    role VARCHAR(100),
+    PRIMARY KEY (movie_id, artist_id, role),
+    FOREIGN KEY (movie_id) REFERENCES Movies(id) ON DELETE CASCADE,
+    FOREIGN KEY (artist_id) REFERENCES Artists(id) ON DELETE CASCADE
+);
+Insert Sample Data
+-- Insert into Movies
+INSERT INTO Movies (title, release_date) VALUES ('Inception', '2010-07-16');-- Insert into Media
+INSERT INTO Media (movie_id, media_type, url) VALUES (1, 'Image', 'inception_poster.jpg'), (1, 'Video', 'inception_trailer.mp4');-- Insert into Genres
+INSERT INTO Genres (name) VALUES ('Sci-Fi'), ('Thriller');-- Insert into Movie_Genres
+INSERT INTO Movie_Genres (movie_id, genre_id) VALUES (1, 1), (1, 2);-- Insert into Users
+INSERT INTO Users (name, email) VALUES ('John Doe', 'john@example.com');-- Insert into Reviews
+INSERT INTO Reviews (movie_id, user_id, review_text, rating) VALUES (1, 1, 'Amazing movie with a mind-blowing concept!', 9);-- Insert into Artists
+INSERT INTO Artists (name, bio) VALUES ('Leonardo DiCaprio', 'A versatile actor known for his powerful performances.');-- Insert into Artist_Skills
+INSERT INTO Artist_Skills (artist_id, skill) VALUES (1, 'Acting'), (1, 'Production');-- Insert into Movie_Artists
+INSERT INTO Movie_Artists (movie_id, artist_id, role) VALUES (1, 1, 'Lead Actor');
+Queries for Requirements
+Fetch all media for a movie:SELECT m.title, md.media_type, md.url
+FROM Movies m
+JOIN Media md ON m.id = md.movie_id
+WHERE m.title = 'Inception';
+Find all genres of a movie:SELECT g.name
+FROM Movie_Genres mg
+JOIN Genres g ON mg.genre_id = g.id
+WHERE mg.movie_id = 1;
+Fetch reviews for a movie:SELECT r.review_text, r.rating, u.name AS user_name
+FROM Reviews r
+JOIN Users u ON r.user_id = u.id
+WHERE r.movie_id = 1;
+Find all roles of an artist in a movie:SELECT ma.role
+FROM Movie_Artists ma
+WHERE ma.movie_id = 1 AND ma.artist_id = 1;
+
